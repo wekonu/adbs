@@ -7,7 +7,10 @@ echo:
 echo use help as param to show options. eg: adbs help
 echo ===================================
 echo:
+echo adb version:
 adb version
+echo:
+echo connected devices:
 adb devices
 
 echo == Note: Please connect a device if no devices are listed
@@ -20,21 +23,51 @@ if "%mode%"=="dumplog" (goto DUMPLOG)
 if "%mode%"=="help" (goto HELP) else (goto UNDEF)
 
 :UNDEF
-echo param is undefined.
 goto HELP
 
 :HELP
-echo use param:
-echo install		: intall an app to a device. eg: adbs install app_name.apk
+echo available param:
+echo install		: install an app to a device. eg: adbs install
 echo log		: shows adb logs to the prompt. eg: adbs log
 echo dumplog		: save logs to a log file. eg: adbs dumplog
 goto END
 
 :INSTALL
-echo Installing: "%cd%\%filename%"
+setlocal ENABLEDELAYEDEXPANSION
+set /a count=0
+echo:
+echo == select .apk to install:
+for %%f in (*.apk) do (
+     set /a count+=1
+     set apk[!count!]=%%f
+     echo !count!. %%f
+)
+
+if %count% equ 0 (
+    echo No APK files found in the current directory.
+    pause
+    goto END
+)
+
+set /p apk_choice=Enter the number of the APK to install: 
+
+rem Validate user input
+if %apk_choice% lss 1 (
+    echo Invalid choice. Exiting.
+    pause
+    goto END
+)
+
+if %apk_choice% gtr %count% (
+    echo Invalid choice. Exiting.
+    pause
+    goto END
+)
+
+echo Installing: "%cd%\!apk[%apk_choice%]!"
 echo Please do not close this window
 echo:
-adb install -r "%cd%\%filename%"
+adb install -r "%cd%\!apk[%apk_choice%]!"
 goto END
 
 :LOG
